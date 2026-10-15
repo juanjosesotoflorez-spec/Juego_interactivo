@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcade de Calidad y Gobierno TI</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0d1117;
+            color: #f0f6fc;
+            background-image: 
+                radial-gradient(at 10% 20%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 90% 80%, rgba(168, 85, 247, 0.15) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        .title-font {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .glass-panel {
+            background: rgba(22, 27, 34, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.25s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(99, 102, 241, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* Grid Sopa de Letras */
+        .soup-grid {
+            display: grid;
+            grid-template-columns: repeat(12, minmax(0, 1fr));
+            gap: 4px;
+            user-select: none;
+            touch-action: none;
+        }
+
+        .soup-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s, border-color 0.15s;
+        }
+
+        .soup-cell:hover {
+            background: rgba(99, 102, 241, 0.25);
+            border-color: rgba(99, 102, 241, 0.5);
+        }
+
+        .soup-cell.selecting {
+            background: rgba(236, 72, 153, 0.5) !important;
+            color: #ffffff;
+            transform: scale(0.95);
+        }
+
+        .soup-cell.found {
+            background: rgba(16, 185, 129, 0.35) !important;
+            border-color: #10b981 !important;
+            color: #6ee7b7;
+            font-weight: 800;
+        }
+
+        /* Target match container */
+        .match-slot {
+            min-height: 72px;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .match-slot.drag-over {
+            border-color: #6366f1;
+            background: rgba(99, 102, 241, 0.15);
+        }
+
+        .match-slot.correct {
+            border-style: solid;
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .match-item {
+            cursor: grab;
+            user-select: none;
+        }
+
+        .match-item:active {
+            cursor: grabbing;
+        }
+
+        .match-item.selected-click {
+            border-color: #ec4899;
+            box-shadow: 0 0 15px rgba(236, 72, 153, 0.4);
+        }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.5);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <!-- Top Header -->
+    <header class="glass-panel sticky top-0 z-40 border-b border-slate-800 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                    <i class="fa-solid fa-gamepad"></i>
+                </div>
+                <div>
+                    <h1 class="title-font text-lg font-bold text-white tracking-wide leading-tight">
+                        Arcade de Calidad & Gobierno TI
+                    </h1>
+                    <p class="text-xs text-slate-400">COBIT 2019 • IEEE Standards • ISO 37000</p>
+                </div>
+            </div>
+
+            <!-- Stats Bar -->
+            <div id="statsBar" class="hidden flex items-center gap-3 md:gap-6 bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-700/50">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-trophy text-amber-400 text-sm"></i>
+                    <div>
+                        <span class="text-[10px] uppercase tracking-wider text-slate-400 block font-semibold">Puntos</span>
+                        <span id="scoreDisplay" class="text-base font-extrabold text-amber-400 title-font">0</span>
+                    </div>
+                </div>
+                <div class="w-px h-6 bg-slate-700"></div>
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-clock text-indigo-400 text-sm"></i>
+                    <div>
+                        <span class="text-[10px] uppercase tracking-wider text-slate-400 block font-semibold">Tiempo</span>
+                        <span id="timerDisplay" class="text-base font-extrabold text-indigo-300 title-font">00:00</span>
+                    </div>
+                </div>
+                <div class="w-px h-6 bg-slate-700"></div>
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-fire text-rose-500 text-sm"></i>
+                    <div>
+                        <span class="text-[10px] uppercase tracking-wider text-slate-400 block font-semibold">Racha</span>
+                        <span id="streakDisplay" class="text-base font-extrabold text-rose-400 title-font">0x</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sound & Restart Buttons -->
+            <div class="flex items-center gap-2">
+                <button id="soundToggleBtn" onclick="toggleSound()" class="px-3 py-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 text-xs font-semibold transition border border-slate-700">
+                    <i class="fa-solid fa-volume-high mr-1"></i> <span id="soundLabel">Sonido: ON</span>
+                </button>
+                <button onclick="resetGamePrompt()" class="px-3 py-2 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 text-xs font-semibold transition border border-rose-500/30">
+                    <i class="fa-solid fa-rotate-right mr-1"></i> Reiniciar
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl w-full mx-auto p-4 md:p-6 flex-1 flex flex-col justify-center">
+
+        <!-- SCREEN 1: LOGIN / START SCREEN -->
+        <section id="welcomeScreen" class="max-w-xl mx-auto w-full glass-panel p-6 md:p-8 rounded-2xl shadow-2xl border border-slate-800">
+            <div class="text-center mb-6">
+                <span class="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 rounded-full border border-indigo-500/20">
+                    EDUNAV ADSO 2026
+                </span>
+                <h2 class="title-font text-2xl md:text-3xl font-extrabold text-white mt-3">
+                    Desafío Interactivo de Aprendizaje
+                </h2>
+                <p class="text-sm text-slate-400 mt-2">
+                    Pon a prueba tus conocimientos sobre los marcos de gobernanza y estándares técnicos de calidad de forma dinámica.
+                </p>
+            </div>
+
+            <form id="startForm" onsubmit="startGame(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Nombre Completo del Aprendiz</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute left-3.5 top-3 text-slate-500 text-sm"></i>
+                        <input type="text" id="playerName" required placeholder="Ej. Juan Jose Areiza" class="w-full bg-slate-900/90 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Número de Ficha</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-id-card absolute left-3.5 top-3 text-slate-500 text-sm"></i>
+                            <input type="text" id="playerFicha" required placeholder="Ej. 3425707" class="w-full bg-slate-900/90 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Modo de Inicio</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-gamepad absolute left-3.5 top-3 text-slate-500 text-sm"></i>
+                            <select id="startMode" class="w-full bg-slate-900/90 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition">
+                                <option value="soup">1. Sopa de Letras</option>
+                                <option value="match">2. Emparejamiento</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-3">
+                    <button type="submit" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white font-bold title-font shadow-lg hover:shadow-indigo-500/25 transition transform active:scale-98 flex items-center justify-center gap-2">
+                        <span>INICIAR DESAFÍO GAMEPLAY</span>
+                        <i class="fa-solid fa-circle-play"></i>
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-6 pt-5 border-t border-slate-800/80 text-center">
+                <p class="text-xs text-slate-500">
+                    <i class="fa-solid fa-shield-halved mr-1"></i> Basado en el guion pedagógico COBIT + IEEE + ISO 37000
+                </p>
+            </div>
+        </section>
+
+
+        <!-- SCREEN 2: GAMEPLAY DASHBOARD (HIDDEN INITIALLY) -->
+        <section id="gameDashboard" class="hidden space-y-6">
+
+            <!-- MODE SELECTOR TABS -->
+            <div class="flex items-center justify-center gap-2 p-1.5 glass-panel rounded-2xl max-w-lg mx-auto border border-slate-800">
+                <button id="tab-soup" onclick="switchMode('soup')" class="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 text-indigo-300 bg-indigo-600/30 border border-indigo-500/40">
+                    <i class="fa-solid fa-border-all"></i>
+                    <span>1. Sopa de Letras</span>
+                </button>
+                <button id="tab-match" onclick="switchMode('match')" class="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-puzzle-piece"></i>
+                    <span>2. Emparejamiento</span>
+                </button>
+            </div>
+
+
+            <!-- MODE 1: SOPA DE LETRAS -->
+            <div id="soupContainer" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                
+                <!-- Word Grid Side -->
+                <div class="lg:col-span-7 glass-panel p-4 md:p-6 rounded-2xl border border-slate-800">
+                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+                        <div>
+                            <h3 class="title-font text-lg font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-magnifying-glass text-indigo-400"></i>
+                                Búsqueda de Términos Clave
+                            </h3>
+                            <p class="text-xs text-slate-400">Arrastra o haz clic en las letras consecutivas para formar las palabras.</p>
+                        </div>
+                        <span id="soupProgressBadge" class="text-xs font-extrabold px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                            0 / 12 Encontradas
+                        </span>
+                    </div>
+
+                    <!-- The 12x12 Grid -->
+                    <div id="soupGrid" class="soup-grid my-2"></div>
+
+                    <div class="mt-4 flex items-center justify-between text-xs text-slate-400 pt-3 border-t border-slate-800">
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-mouse text-indigo-400"></i> Click/Touch para seleccionar</span>
+                        <button onclick="clearSoupSelection()" class="text-rose-400 hover:underline"><i class="fa-solid fa-xmark mr-1"></i>Limpiar Selección</button>
+                    </div>
+                </div>
+
+                <!-- Word List & Explanations Side -->
+                <div class="lg:col-span-5 space-y-4">
+                    <div class="glass-panel p-5 rounded-2xl border border-slate-800">
+                        <h4 class="title-font text-sm font-bold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-purple-400"></i>
+                            Lista de Términos
+                        </h4>
+                        <div id="wordListContainer" class="grid grid-cols-2 gap-2 text-xs">
+                            <!-- Filled dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Explanation Card for Found Word -->
+                    <div id="wordConceptCard" class="glass-panel p-5 rounded-2xl border border-indigo-500/30 bg-indigo-950/20">
+                        <div class="flex items-center gap-2 text-indigo-400 font-bold text-xs uppercase tracking-wider mb-2">
+                            <i class="fa-solid fa-lightbulb"></i>
+                            <span id="conceptTitle">Pista de Conocimiento</span>
+                        </div>
+                        <p id="conceptText" class="text-xs text-slate-300 leading-relaxed">
+                            Selecciona y encuentra las palabras ocultas en la sopa de letras para desbloquear los conceptos clave de COBIT, IEEE e ISO 37000.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- MODE 2: MATCHING GAME (EMPAREJAMIENTO) -->
+            <div id="matchContainer" class="hidden space-y-6">
+                <div class="glass-panel p-5 rounded-2xl border border-slate-800">
+                    <div class="flex flex-wrap items-center justify-between gap-4 mb-2">
+                        <div>
+                            <h3 class="title-font text-lg font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-puzzle-piece text-pink-400"></i>
+                                Desafío de Emparejamiento de Conceptos
+                            </h3>
+                            <p class="text-xs text-slate-400">Arrastra cada concepto de la izquierda a su definición/ejemplo correspondiente en la derecha (o haz clic en uno y luego en su destino).</p>
+                        </div>
+                        <span id="matchProgressBadge" class="text-xs font-extrabold px-3 py-1 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/30">
+                            0 / 6 Emparejados
+                        </span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Draggable Sources -->
+                    <div class="glass-panel p-5 rounded-2xl border border-slate-800 space-y-3">
+                        <h4 class="title-font text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                            Conceptos y Marcos
+                        </h4>
+                        <div id="matchSources" class="space-y-2.5">
+                            <!-- Filled dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Target Drop Slots -->
+                    <div class="glass-panel p-5 rounded-2xl border border-slate-800 space-y-3">
+                        <h4 class="title-font text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                            Definición o Ejemplo de Aplicación
+                        </h4>
+                        <div id="matchTargets" class="space-y-3">
+                            <!-- Filled dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Finish Game Button -->
+            <div class="flex justify-end pt-4">
+                <button onclick="finishGame()" class="py-3 px-8 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold title-font shadow-lg hover:shadow-emerald-500/25 transition transform active:scale-98 flex items-center gap-2">
+                    <i class="fa-solid fa-flag-checkered"></i>
+                    <span>Finalizar y Ver Informe</span>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- SCREEN 3: RESULTS & CERTIFICATE DASHBOARD -->
+        <section id="resultsScreen" class="hidden max-w-3xl mx-auto w-full glass-panel p-6 md:p-8 rounded-2xl border border-slate-800 shadow-2xl space-y-6">
+            
+            <div class="text-center space-y-3">
+                <div class="inline-flex p-4 rounded-full bg-gradient-to-tr from-amber-500/20 to-indigo-500/20 border border-amber-500/40 text-amber-400 text-3xl mb-1">
+                    <i class="fa-solid fa-award"></i>
+                </div>
+                <h2 class="title-font text-2xl md:text-3xl font-extrabold text-white">
+                    ¡Sesión Finalizada con Éxito!
+                </h2>
+                <p class="text-xs text-slate-400">
+                    Informe de Desempeño Gamificado — Análisis y Desarrollo de Software (ADSO)
+                </p>
+            </div>
+
+            <!-- Apprentice Details Header -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-center">
+                <div>
+                    <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Aprendiz</span>
+                    <span id="resPlayerName" class="text-xs font-bold text-white truncate block">--</span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Ficha SENA</span>
+                    <span id="resPlayerFicha" class="text-xs font-bold text-indigo-400 block">--</span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Tiempo Total</span>
+                    <span id="resTotalTime" class="text-xs font-bold text-indigo-300 block">--:--</span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Puntaje Final</span>
+                    <span id="resTotalScore" class="text-sm font-extrabold text-amber-400 title-font block">0 pts</span>
+                </div>
+            </div>
+
+            <!-- Performance Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="glass-card p-4 rounded-xl border border-slate-800 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-slate-300"><i class="fa-solid fa-border-all text-indigo-400 mr-2"></i>Sopa de Letras</span>
+                        <span id="resSoupScore" class="text-xs font-extrabold text-indigo-400">0 / 12</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div id="resSoupBar" class="bg-indigo-500 h-full w-0 transition-all duration-500"></div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-4 rounded-xl border border-slate-800 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-slate-300"><i class="fa-solid fa-puzzle-piece text-pink-400 mr-2"></i>Emparejamiento</span>
+                        <span id="resMatchScore" class="text-xs font-extrabold text-pink-400">0 / 6</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div id="resMatchBar" class="bg-pink-500 h-full w-0 transition-all duration-500"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theoretical Summary Recap -->
+            <div class="glass-panel p-5 rounded-xl border border-slate-800 space-y-3">
+                <h4 class="title-font text-sm font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-graduation-cap text-indigo-400"></i>
+                    Resumen Ejecutivo Teórico
+                </h4>
+                <div class="space-y-2 text-xs text-slate-300 leading-relaxed">
+                    <p><strong class="text-indigo-300">COBIT 2019 (ISACA):</strong> Enfocado en el gobierno (EDM) y la gestión (APO, BAI, DSS, MEA) de tecnología empresarial para alinear TI con los objetivos de negocio.</p>
+                    <p><strong class="text-purple-300">IEEE (IEEE 730 / 12207):</strong> Proporciona estándares técnicos para el Aseguramiento de la Calidad del Software (SQA) y los Procesos del Ciclo de Vida del Software.</p>
+                    <p><strong class="text-pink-300">ISO 37000:2021:</strong> Guía de gobierno organizacional sobre toma de decisiones estratégicas, ética, supervisión y gestión de partes interesadas.</p>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+                <button onclick="window.print()" class="py-2.5 px-5 rounded-xl bg-slate-800 text-slate-200 hover:bg-slate-700 text-xs font-bold transition flex items-center gap-2 border border-slate-700">
+                    <i class="fa-solid fa-print"></i>
+                    <span>Imprimir / Guardar en PDF</span>
+                </button>
+                <button onclick="restartFullGame()" class="py-2.5 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition flex items-center gap-2 shadow-lg">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Jugar Nuevamente</span>
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-4 text-xs text-slate-500 border-t border-slate-900 glass-panel mt-6">
+        <p>Centro Textil y de Gestión Industrial — SENA Regional Antioquia • ADSO 2026</p>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        let soundEnabled = true;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, now);
+                    gain.gain.setValueAtTime(0.05, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                } else if (type === 'found') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.08);
+                    osc.frequency.setValueAtTime(783.99, now + 0.16);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'win') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.setValueAtTime(880, now + 0.15);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } else if (type === 'error') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(180, now);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                }
+            } catch (e) { console.log(e); }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundLabel').innerText = `Sonido: ${soundEnabled ? 'ON' : 'OFF'}`;
+        }
+
+        let player = { name: '', ficha: '' };
+        let score = 0;
+        let streak = 0;
+        let timerSeconds = 0;
+        let timerInterval = null;
+        let currentMode = 'soup';
+
+        const SOUP_WORDS = [
+            { word: "COBIT", hint: "Marco de referencia para el gobierno y la gestión de la tecnología empresarial desarrollado por ISACA." },
+            { word: "ISACA", hint: "Organización internacional creadora del marco de gobernanza TI COBIT." },
+            { word: "IEEE", hint: "Institute of Electrical and Electronics Engineers, creador de estándares técnicos en ingeniería." },
+            { word: "GOBIERNO", hint: "Función de evaluar necesidades, establecer dirección estratégica y supervisar el cumplimiento." },
+            { word: "GESTION", hint: "Función encargada de planificar, construir, ejecutar y supervisar las actividades operativas." },
+            { word: "SQA", hint: "Software Quality Assurance (Aseguramiento de la Calidad del Software), guiado por IEEE 730." },
+            { word: "CALIDAD", hint: "Capacidad de un sistema para cumplir los requisitos y satisfacer las necesidades del usuario." },
+            { word: "RIESGO", hint: "Evaluación de incertidumbres y amenazas en proyectos tecnológicos según COBIT e ISO 37000." },
+            { word: "EDM", hint: "Dominio de Gobierno en COBIT: Evaluar, Dirigir y Supervisar." },
+            { word: "APO", hint: "Dominio de Gestión en COBIT: Alinear, Planificar y Organizar." },
+            { word: "BAI", hint: "Dominio de Gestión en COBIT: Construir, Adquirir e Implementar." },
+            { word: "DSS", hint: "Dominio de Gestión en COBIT: Entregar, Prestar Servicio y Dar Soporte." }
+        ];
+
+        let foundWords = new Set();
+        let selectedSoupIndices = [];
+        let isMouseDownSoup = false;
+
+        const GRID_SIZE = 12;
+        let gridLetters = Array(GRID_SIZE * GRID_SIZE).fill('');
+        let wordPlacements = {};
+
+        const MATCH_DATA = [
+            { id: 1, source: "COBIT 2019", target: "Marco de ISACA enfocado en alinear la tecnología con las metas estratégicas de la empresa." },
+            { id: 2, source: "IEEE 730", target: "Estándar técnico que especifica los requisitos para el Aseguramiento de la Calidad del Software (SQA)." },
+            { id: 3, source: "ISO 37000:2021", target: "Norma internacional que orienta sobre el gobierno organizacional y la toma de decisiones directivas." },
+            { id: 4, source: "Dominio EDM", target: "Evaluar, Dirigir y Supervisar: Dominio principal de nivel de Gobierno en COBIT." },
+            { id: 5, source: "ISO/IEC/IEEE 12207", target: "Estándar marco para los procesos del Ciclo de Vida del Software desde el concepto hasta el retiro." },
+            { id: 6, source: "Gobierno vs Gestión", target: "El Gobierno define QUÉ lograr y la Dirección; la Gestión define CÓMO ejecutar la operación." }
+        ];
+
+        let matchedPairs = new Set();
+        let selectedMatchSource = null;
+
+        function startGame(e) {
+            e.preventDefault();
+            const name = document.getElementById('playerName').value.trim();
+            const ficha = document.getElementById('playerFicha').value.trim();
+            const mode = document.getElementById('startMode').value;
+
+            if (!name || !ficha) return;
+
+            player.name = name;
+            player.ficha = ficha;
+
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            document.getElementById('gameDashboard').classList.remove('hidden');
+            document.getElementById('statsBar').classList.remove('hidden');
+
+            initSoupGrid();
+            initMatchGame();
+            startTimer();
+            switchMode(mode);
+            playSound('win');
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerSeconds = 0;
+            timerInterval = setInterval(() => {
+                timerSeconds++;
+                const mins = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+                const secs = String(timerSeconds % 60).padStart(2, '0');
+                document.getElementById('timerDisplay').innerText = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function addScore(points) {
+            streak++;
+            const multiplier = Math.min(Math.floor(streak / 3) + 1, 3);
+            const totalAdded = points * multiplier;
+            score += totalAdded;
+
+            document.getElementById('scoreDisplay').innerText = score;
+            document.getElementById('streakDisplay').innerText = `${multiplier}x`;
+        }
+
+        function resetStreak() {
+            streak = 0;
+            document.getElementById('streakDisplay').innerText = `0x`;
+        }
+
+        function switchMode(mode) {
+            currentMode = mode;
+            const tabSoup = document.getElementById('tab-soup');
+            const tabMatch = document.getElementById('tab-match');
+            const soupContainer = document.getElementById('soupContainer');
+            const matchContainer = document.getElementById('matchContainer');
+
+            if (mode === 'soup') {
+                tabSoup.className = "flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 text-indigo-300 bg-indigo-600/30 border border-indigo-500/40";
+                tabMatch.className = "flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 text-slate-400 hover:text-white";
+                soupContainer.classList.remove('hidden');
+                matchContainer.classList.add('hidden');
+            } else {
+                tabMatch.className = "flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 text-pink-300 bg-pink-600/30 border border-pink-500/40";
+                tabSoup.className = "flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 text-slate-400 hover:text-white";
+                matchContainer.classList.remove('hidden');
+                soupContainer.classList.add('hidden');
+            }
+            playSound('click');
+        }
+
+        function initSoupGrid() {
+            gridLetters = Array(144).fill('');
+            wordPlacements = {};
+
+            const placements = [
+                { word: "COBIT", start: 0, dir: 1 },
+                { word: "ISACA", start: 12, dir: 1 },
+                { word: "IEEE", start: 24, dir: 1 },
+                { word: "GOBIERNO", start: 36, dir: 1 },
+                { word: "GESTION", start: 48, dir: 1 },
+                { word: "SQA", start: 60, dir: 1 },
+                { word: "CALIDAD", start: 72, dir: 1 },
+                { word: "RIESGO", start: 84, dir: 1 },
+                { word: "EDM", start: 96, dir: 1 },
+                { word: "APO", start: 108, dir: 1 },
+                { word: "BAI", start: 120, dir: 1 },
+                { word: "DSS", start: 132, dir: 1 }
+            ];
+
+            const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+            placements.forEach(p => {
+                const indices = [];
+                for (let i = 0; i < p.word.length; i++) {
+                    const idx = p.start + (i * p.dir);
+                    gridLetters[idx] = p.word[i];
+                    indices.push(idx);
+                }
+                wordPlacements[p.word] = indices;
+            });
+
+            for (let i = 0; i < 144; i++) {
+                if (!gridLetters[i]) {
+                    gridLetters[i] = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                }
+            }
+
+            const gridEl = document.getElementById('soupGrid');
+            gridEl.innerHTML = '';
+            
+            gridLetters.forEach((char, idx) => {
+                const cell = document.createElement('div');
+                cell.className = 'soup-cell';
+                cell.dataset.index = idx;
+                cell.innerText = char;
+
+                cell.addEventListener('mousedown', () => startSoupSelect(idx));
+                cell.addEventListener('mouseenter', () => enterSoupSelect(idx));
+                cell.addEventListener('mouseup', () => endSoupSelect());
+
+                cell.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    startSoupSelect(idx);
+                });
+
+                gridEl.appendChild(cell);
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isMouseDownSoup) endSoupSelect();
+            });
+
+            renderSoupWordList();
+        }
+
+        function renderSoupWordList() {
+            const container = document.getElementById('wordListContainer');
+            container.innerHTML = '';
+
+            SOUP_WORDS.forEach(item => {
+                const isFound = foundWords.has(item.word);
+                const badge = document.createElement('div');
+                badge.className = `p-2 rounded-xl border flex items-center justify-between transition ${
+                    isFound 
+                    ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 font-bold' 
+                    : 'bg-slate-900/50 border-slate-800 text-slate-400'
+                }`;
+                badge.innerHTML = `
+                    <span class="tracking-wide">${item.word}</span>
+                    <i class="fa-solid ${isFound ? 'fa-circle-check text-emerald-400' : 'fa-circle-thin text-slate-600'}"></i>
+                `;
+                container.appendChild(badge);
+            });
+
+            document.getElementById('soupProgressBadge').innerText = `${foundWords.size} / ${SOUP_WORDS.length} Encontradas`;
+        }
+
+        function startSoupSelect(idx) {
+            isMouseDownSoup = true;
+            selectedSoupIndices = [idx];
+            updateSoupCellStyles();
+            playSound('click');
+        }
+
+        function enterSoupSelect(idx) {
+            if (!isMouseDownSoup) return;
+            if (!selectedSoupIndices.includes(idx)) {
+                selectedSoupIndices.push(idx);
+                updateSoupCellStyles();
+            }
+        }
+
+        function updateSoupCellStyles() {
+            const cells = document.querySelectorAll('.soup-cell');
+            cells.forEach(cell => {
+                const idx = parseInt(cell.dataset.index);
+                if (selectedSoupIndices.includes(idx)) {
+                    cell.classList.add('selecting');
+                } else {
+                    cell.classList.remove('selecting');
+                }
+            });
+        }
+
+        function clearSoupSelection() {
+            selectedSoupIndices = [];
+            updateSoupCellStyles();
+        }
+
+        function endSoupSelect() {
+            if (!isMouseDownSoup) return;
+            isMouseDownSoup = false;
+
+            const selectedStr = selectedSoupIndices.map(idx => gridLetters[idx]).join('');
+            const reversedStr = selectedStr.split('').reverse().join('');
+
+            let matchedWord = null;
+
+            SOUP_WORDS.forEach(item => {
+                if (!foundWords.has(item.word)) {
+                    if (item.word === selectedStr || item.word === reversedStr) {
+                        matchedWord = item;
+                    }
+                }
+            });
+
+            if (matchedWord) {
+                foundWords.add(matchedWord.word);
+                const cells = document.querySelectorAll('.soup-cell');
+                selectedSoupIndices.forEach(idx => {
+                    cells[idx].classList.add('found');
+                });
+
+                document.getElementById('conceptTitle').innerText = matchedWord.word;
+                document.getElementById('conceptText').innerText = matchedWord.hint;
+
+                addScore(100);
+                playSound('found');
+                renderSoupWordList();
+
+                if (foundWords.size === SOUP_WORDS.length) {
+                    confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+                }
+            } else {
+                resetStreak();
+            }
+
+            clearSoupSelection();
+        }
+
+        function initMatchGame() {
+            const sourcesContainer = document.getElementById('matchSources');
+            const targetsContainer = document.getElementById('matchTargets');
+
+            sourcesContainer.innerHTML = '';
+            targetsContainer.innerHTML = '';
+
+            const sources = [...MATCH_DATA].sort(() => Math.random() - 0.5);
+            const targets = [...MATCH_DATA].sort(() => Math.random() - 0.5);
+
+            sources.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'match-item glass-card p-3.5 rounded-xl border border-slate-700 text-xs font-bold text-white flex items-center justify-between shadow-sm hover:border-pink-500/50 transition';
+                card.draggable = true;
+                card.dataset.id = item.id;
+                card.innerHTML = `
+                    <span>${item.source}</span>
+                    <i class="fa-solid fa-grip-vertical text-slate-500"></i>
+                `;
+
+                card.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', item.id);
+                    selectedMatchSource = item.id;
+                });
+
+                card.addEventListener('click', () => {
+                    document.querySelectorAll('.match-item').forEach(c => c.classList.remove('selected-click'));
+                    card.classList.add('selected-click');
+                    selectedMatchSource = item.id;
+                    playSound('click');
+                });
+
+                sourcesContainer.appendChild(card);
+            });
+
+            targets.forEach(item => {
+                const slot = document.createElement('div');
+                slot.className = 'match-slot glass-card p-3.5 rounded-xl flex items-center text-xs text-slate-300 leading-snug cursor-pointer';
+                slot.dataset.id = item.id;
+                slot.innerText = item.target;
+
+                slot.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    slot.classList.add('drag-over');
+                });
+
+                slot.addEventListener('dragleave', () => {
+                    slot.classList.remove('drag-over');
+                });
+
+                slot.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    slot.classList.remove('drag-over');
+                    const sourceId = parseInt(e.dataTransfer.getData('text/plain'));
+                    checkMatchPair(sourceId, item.id, slot);
+                });
+
+                slot.addEventListener('click', () => {
+                    if (selectedMatchSource) {
+                        checkMatchPair(selectedMatchSource, item.id, slot);
+                    }
+                });
+
+                targetsContainer.appendChild(slot);
+            });
+
+            updateMatchProgress();
+        }
+
+        function checkMatchPair(sourceId, targetId, targetSlot) {
+            if (matchedPairs.has(targetId)) return;
+
+            if (sourceId === targetId) {
+                matchedPairs.add(targetId);
+                targetSlot.classList.add('correct');
+                targetSlot.innerHTML = `
+                    <div class="flex items-center gap-2 text-emerald-400 font-bold">
+                        <i class="fa-solid fa-circle-check text-base"></i>
+                        <span>${targetSlot.innerText}</span>
+                    </div>
+                `;
+
+                const sourceCard = document.querySelector(`.match-item[data-id="${sourceId}"]`);
+                if (sourceCard) {
+                    sourceCard.classList.add('opacity-40', 'pointer-events-none');
+                    sourceCard.classList.remove('selected-click');
+                }
+
+                selectedMatchSource = null;
+                addScore(150);
+                playSound('found');
+                updateMatchProgress();
+
+                if (matchedPairs.size === MATCH_DATA.length) {
+                    confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+                }
+            } else {
+                playSound('error');
+                resetStreak();
+            }
+        }
+
+        function updateMatchProgress() {
+            document.getElementById('matchProgressBadge').innerText = `${matchedPairs.size} / ${MATCH_DATA.length} Emparejados`;
+        }
+
+        function resetGamePrompt() {
+            if (confirm("¿Deseas reiniciar el desafío y reiniciar tu puntuación?")) {
+                location.reload();
+            }
+        }
+
+        function finishGame() {
+            clearInterval(timerInterval);
+
+            document.getElementById('gameDashboard').classList.add('hidden');
+            document.getElementById('resultsScreen').classList.remove('hidden');
+
+            document.getElementById('resPlayerName').innerText = player.name;
+            document.getElementById('resPlayerFicha').innerText = player.ficha;
+
+            const mins = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+            const secs = String(timerSeconds % 60).padStart(2, '0');
+            document.getElementById('resTotalTime').innerText = `${mins}:${secs}`;
+            document.getElementById('resTotalScore').innerText = `${score} pts`;
+
+            const soupPct = Math.round((foundWords.size / SOUP_WORDS.length) * 100);
+            const matchPct = Math.round((matchedPairs.size / MATCH_DATA.length) * 100);
+
+            document.getElementById('resSoupScore').innerText = `${foundWords.size} / ${SOUP_WORDS.length}`;
+            document.getElementById('resSoupBar').style.width = `${soupPct}%`;
+
+            document.getElementById('resMatchScore').innerText = `${matchedPairs.size} / ${MATCH_DATA.length}`;
+            document.getElementById('resMatchBar').style.width = `${matchPct}%`;
+
+            playSound('win');
+            confetti({ particleCount: 120, spread: 100, origin: { y: 0.5 } });
+        }
+
+        function restartFullGame() {
+            location.reload();
+        }
+    </script>
+</body>
+</html>
