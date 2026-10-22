@@ -1,54 +1,70 @@
-# 🎮 Juego Interactivo: Sopa de Letras y Emparejamiento
+# 🎮 Arcade de Calidad, Gestión y Gobierno TI
+> **Proyecto Educativo e Interactivo** | ADSO 2026 — SENA Regional Antioquia
 
-## 📌 Descripción del proyecto
+[![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)](https://developer.mozilla.org/es/docs/Web/HTML)
+[![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)](https://developer.mozilla.org/es/docs/Web/CSS)
+[![Bootstrap 5](https://img.shields.io/badge/Bootstrap_5-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)](https://getbootstrap.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/es/docs/Web/JavaScript)
 
-Este proyecto consiste en un juego educativo interactivo diseñado para reforzar los conocimientos sobre **COBIT, IEEE e ISO**, mediante dos actividades dinámicas: una sopa de letras y un juego de emparejamiento.
+---
 
-Su propósito es facilitar el aprendizaje de conceptos relacionados con la calidad del software, los estándares técnicos, el gobierno organizacional y la gestión de la tecnología, de una manera entretenida y participativa.
+## 🌐 Demo en Vivo
 
-## 🎯 Objetivo
+Puedes probar la aplicación directamente en el siguiente enlace:
 
-Fortalecer y evaluar los conocimientos adquiridos sobre COBIT, IEEE e ISO mediante actividades interactivas que permitan identificar términos importantes y relacionar conceptos con sus respectivas definiciones.
+👉 **[Ver Página Web del Proyecto](AQUI_VA_TU_LINK_DE_DEPLOY)** *(Reemplaza este espacio con la URL de GitHub Pages, Vercel o Netlify)*
 
-## 🕹️ Actividades del juego
+---
 
-### 🔎 1. Sopa de letras
+## 📌 Descripción del Proyecto
 
-Actividad en la que los participantes deben encontrar palabras relacionadas con los temas estudiados, poniendo a prueba su capacidad de observación y reconocimiento de conceptos.
+El **Arcade de Calidad y Gobierno TI** es una aplicación web gamificada desarrollada para transformar el aprendizaje de marcos de referencia y estándares de software en una experiencia dinámica, interactiva y accesible desde dispositivos móviles y computadoras.
 
-### 🔗 2. Juego de emparejamiento
+Esta herramienta sirve como apoyo didáctico para afianzar los conceptos fundamentales expuestos en el guion pedagógico sobre:
+- **COBIT 2019 (ISACA):** Gobierno y Gestión de Tecnología Empresarial (EDM, APO, BAI, DSS, MEA).
+- **IEEE (IEEE 730 / ISO/IEC/IEEE 12207):** Estándares técnicos de Aseguramiento de Calidad del Software (SQA) y Ciclo de Vida.
+- **ISO 37000:2021:** Orientación sobre el Gobierno Organizacional y Toma de Decisiones Estratégicas.
 
-Actividad en la que los participantes deben relacionar conceptos con sus definiciones correspondientes, reforzando la comprensión de los temas.
+---
 
-## 📚 Temas abordados
+## 🕹️ Minijuegos Incluidos
 
-- **COBIT:** marco de referencia para el gobierno y la gestión de la información y la tecnología.
-- **IEEE:** organización profesional internacional que desarrolla estándares técnicos relacionados con la ingeniería y la tecnología.
-- **IEEE 730:** estándar relacionado con el aseguramiento de la calidad del software.
-- **ISO/IEC/IEEE 12207:** norma relacionada con los procesos del ciclo de vida del software.
-- **ISO 37000:** orientación sobre el gobierno de las organizaciones.
-- **Calidad del software:** importancia de los procesos, las pruebas y las buenas prácticas en el desarrollo de sistemas.
+La plataforma integra **5 experiencias interactivas con dificultad progresiva y feedback inmediato**:
 
-## 🚀 ¿Cómo jugar?
+1. **🔤 1. Sopa de Letras Didáctica:** Búsqueda interactiva de 12 términos clave con tarjetas conceptuales emergentes que explican cada término al ser descubierto.
+2. **🏗️ 2. Torre TI de Gobierno (Stack Arcade en HTML5 Canvas):** Minijuego de precisión física donde se construyen proyectos estables apilando bloques estratégicos de los dominios COBIT e IEEE.
+3. **🧩 3. Emparejamiento de Conceptos:** Juego táctil (*Touch / Drag & Drop*) para asociar marcos y estándares con sus definiciones y casos de uso real.
+4. **🎭 4. Desafío por Roles del Guion (Trivia de Exposición):** Quizz interactivo estructurado según la repartición temática de los 4 expositores (**Quintero**, **Soto**, **Ospina** y **Areiza**).
+5. **🧪 5. Laboratorio de Casos Prácticos:** Simulador de resolución de dilemas empresariales donde el usuario analiza escenarios reales de empresas de software e identifica cuál norma aplicar (**COBIT**, **IEEE** o **ISO 37000**).
 
-1. Ingresa al juego mediante el enlace que aparece al final de este documento.
-2. Explora las actividades disponibles.
-3. Encuentra las palabras de la sopa de letras.
-4. Relaciona los conceptos con sus definiciones en el juego de emparejamiento.
-5. Completa las actividades siguiendo las instrucciones que aparecen en pantalla.
+---
 
-## 👥 Público objetivo
+## ✨ Características Principales
 
-Aprendices del programa **Tecnólogo en Análisis y Desarrollo de Software del SENA**, estudiantes y personas interesadas en aprender sobre calidad del software, estándares técnicos y gobierno organizacional.
+* 📱 **Diseño 100% Responsive & Touch Friendly:** Interfaz ajustada dinámicamente para jugar desde celulares, tablets y escritorios.
+* 🔊 **Audio Arcade en Web Audio API:** Efectos sonoros sintetizados nativos para respuestas correctas, errores y combos sin necesidad de archivos externos.
+* 🏆 **Sistema de Gamificación Completo:**
+  * Puntuación dinámica y multiplicador por racha ($1x, 2x, 3x, 4x$).
+  * Contador de tiempo en vivo.
+  * Persistencia del puntaje máximo (*High Score*) usando `localStorage`.
+* 📜 **Reporte Final e Imprimible:** Certificado final con resumen ejecutivo de desempeño descargable o directamente imprimible en PDF.
 
-## 🌐 Acceso al juego
+---
 
-**¡Aprende jugando y demuestra tus conocimientos!**
+## 🛠️ Tecnologías Utilizadas
 
-👉 [Haz clic aquí para jugar la sopa de letras y el juego de emparejamiento](https://transcendent-lily-835286.netlify.app/)
+- **HTML5:** Estructura semántica de la aplicación y renderizado mediante HTML5 `<canvas>`.
+- **CSS3 / Tailwind CSS / Bootstrap 5:** Estilos modernos, componentes responsivos y diseño de paneles transparentes con efecto *Glassmorphism*.
+- **JavaScript (Vanilla ES6+):** Lógica del juego, detección de eventos táctiles, animaciones y gestión del estado local.
+- **Web Audio API & Canvas Confetti:** Efectos de sonido dinámicos y animación de celebración al finalizar.
 
-## 📝 Conclusión
+---
 
-Este recurso educativo permite repasar los conceptos de COBIT, IEEE e ISO de una forma práctica e interactiva. A través de la búsqueda de palabras y la asociación de conceptos, los participantes pueden reforzar lo aprendido y mejorar su comprensión de los temas.
+## 🚀 Instalación y Uso Local
 
-**¡Diviértete, encuentra las palabras y relaciona correctamente cada concepto!**
+Para ejecutar el proyecto localmente en tu equipo:
+
+1. **Clona este repositorio:**
+   ```bash
+   git clone [https://github.com/tu-usuario/arcade-calidad-gobierno-ti.git](https://github.com/tu-usuario/arcade-calidad-gobierno-ti.git)
