@@ -61,10 +61,10 @@ La plataforma integra **5 experiencias interactivas con dificultad progresiva y 
 
 ---
 
-## 🚀 Instalación y Uso Local
+## 🌐 Acceso Directo al Juego en Línea
 
-Para ejecutar el proyecto localmente en tu equipo:
+¡No necesitas instalar nada para jugar! Puedes ingresar a la versión interactiva en vivo desde cualquier navegador o teléfono celular:
 
-1. **Clona este repositorio:**
-   ```bash
-   git clone [https://github.com/tu-usuario/arcade-calidad-gobierno-ti.git](https://github.com/tu-usuario/arcade-calidad-gobierno-ti.git)
+👉 **[JUGAR AHORA: Arcade de Calidad y Gobierno TI](https://juanjosesotoflorez-spec.github.io/Juego_interactivo/)**
+
+---
