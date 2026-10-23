@@ -13,7 +13,7 @@
 
 Puedes probar la aplicación directamente en el siguiente enlace:
 
-👉 **[Ver Página Web del Proyecto](AQUI_VA_TU_LINK_DE_DEPLOY)** *(Reemplaza este espacio con la URL de GitHub Pages, Vercel o Netlify)*
+👉 **[Ver Página Web del Proyecto](https://juanjosesotoflorez-spec.github.io/interactive-web-game/)** 
 
 ---
 
