@@ -13,7 +13,7 @@
 
 Puedes probar la aplicación directamente en el siguiente enlace:
 
-👉 **[Ver Página Web del Proyecto](https://juanjosesotoflorez-spec.github.io/interactive-web-game/)** 
+👉 **[Ver Página Web del Proyecto](https://6adbc51d59deff1b89f2e709--spontaneous-cupcake-a067ac.netlify.app/)** 
 
 ---
 
@@ -65,6 +65,6 @@ La plataforma integra **5 experiencias interactivas con dificultad progresiva y 
 
 ¡No necesitas instalar nada para jugar! Puedes ingresar a la versión interactiva en vivo desde cualquier navegador o teléfono celular:
 
-👉 **[JUGAR AHORA: Arcade de Calidad y Gobierno TI](https://juanjosesotoflorez-spec.github.io/Juego_interactivo/)**
+👉 **[JUGAR AHORA: Arcade de Calidad y Gobierno TI](https://6adbc51d59deff1b89f2e709--spontaneous-cupcake-a067ac.netlify.app/)**
 
 ---
